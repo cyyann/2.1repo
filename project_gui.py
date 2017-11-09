@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 import tkinter as tk # tkinter importen
 from tkinter import ttk
 
+import time 
 
 LARGE_FONT= ("Verdana", 12)
 
@@ -24,7 +25,7 @@ class MainWindow(tk.Tk):
 
         tk.Tk.wm_title(self, "Project GUI")
         
-        
+         
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand = True)
         container.grid_rowconfigure(0, weight=1)
@@ -49,12 +50,22 @@ class MainWindow(tk.Tk):
 
 # Beginscherm GUI        
 class StartPage(tk.Frame):
-
+        
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         label = tk.Label(self, text="Maak uw keuze", font=LARGE_FONT)
         label.pack(pady=20,padx=10)
 
+        # Rolluik omhoog laten gaan
+        def upwards():
+            label = tk.Label(self, text="Rolluik gaat omhoog...", font=('Helvetica', 10))
+            label.pack(pady=10,padx=10)
+
+        # Rolluik omlaag laten gaan
+        def downwards():
+            label = tk.Label(self, text="Rolluik gaat omlaag...", font=('Helvetica', 10))
+            label.pack(pady=10,padx=10)
+            
         button = tk.Button(self, text="Temperatuur diagram", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
                             command=lambda: controller.show_frame(TempPage))
         button.pack()
@@ -62,6 +73,17 @@ class StartPage(tk.Frame):
         button2 = tk.Button(self, text="Lichtsensor diagram", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
                             command=lambda: controller.show_frame(LightPage))
         button2.pack(pady=18)
+
+        label = tk.Label(self, text="Rolluik control, omhoog of omlaag. \nKlik op de knop om het rolluik te besturen ", font=('Helvetica', 12))
+        label.pack(pady=10,padx=10)
+        
+        button3 = tk.Button(self, text="⬆", bg='gray', fg='#ffffff', relief='flat', bd=8, height=1, font=('Helvetica', 20), command=upwards)
+        button3.pack(pady=1)
+
+        button4 = tk.Button(self, text="⬇", bg='gray', fg='#ffffff', relief='flat', bd=8, height=1, font=('Helvetica', 20), command=downwards)
+        button4.pack(pady=1)
+
+        
 
 # Temperatuursensor GUI
 class TempPage(tk.Frame):
@@ -102,7 +124,7 @@ class LightPage(tk.Frame):
         l.pack()
         f = Figure(figsize=(5,5), dpi=100)
         plt = f.add_subplot(111)
-        # Vooralsnog alleen testdata: Moet worden ingelezen vanuit Arduino results (to do)
+        # Vooralsnog alleen testdata: Moet worden ingelezen vanuit Arduino results
         plt.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
         plt.set_ylabel('Voltage', rotation=90, fontsize=10, labelpad=8)
         plt.set_xlabel('Uur', rotation=0, fontsize=10, labelpad=5)
