@@ -1,7 +1,6 @@
-# Versie 1.2
+# Versie 2.1
 # Door Misha Dokter
 # Datum: 01-11-'17
-# Verschil met V1.1: Classes om 1 dezelfde GUI te houden ipv verschillende GUI's met DEF (functions)
 
 import matplotlib # matplotlib = voor graphs
 matplotlib.use("TkAgg")
@@ -65,18 +64,41 @@ class StartPage(tk.Frame):
         label.pack(pady=20,padx=10)
 
         # Rolluik omhoog laten gaan
+
+
         def upwards():
-            count = 0
-            while (count < 9):
-               count = count + 1
-               time.sleep(1)
-            self.lbl = tk.Label(self, text="Uitgerold", font=('Helvetica', 10))
+            start = time.time()
+            PERIOD_OF_TIME = 5 # 5sec
+            self.lbl = tk.Label(self, text="Rolluik gaat omhoog...", font=('Helvetica', 10))
             self.lbl.pack(pady=10,padx=10)
+            def change_color():
+                    
+                current_color = box.cget("background")
+                for i in range(5):
+                    next_color = "orange" if current_color == "red" else "red"
+                box.config(background=next_color, height="3", width="6")
+                root.after(500, change_color)
+                
+            box = tk.Text(self)
+            box.pack()
+            change_color()
+            print (start)
+            if time.time() > start + PERIOD_OF_TIME:
+                print ("Stop")
 
         # Rolluik omlaag laten gaan
         def downwards():
             label = tk.Label(self, text="Rolluik gaat omlaag...", font=('Helvetica', 10))
             label.pack(pady=10,padx=10)
+            def change_color():
+                current_color = box.cget("background")
+                next_color = "orange" if current_color == "green" else "green"
+                box.config(background=next_color, height="3", width="6")
+                root.after(500, change_color)
+                        
+            box = tk.Text(self)
+            box.pack()
+            change_color()
             
         button = tk.Button(self, text="Temperatuur diagram", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
                             command=lambda: controller.show_frame(TempPage))
@@ -95,9 +117,17 @@ class StartPage(tk.Frame):
         button4 = tk.Button(self, text="⬇", bg='gray', fg='#ffffff', relief='flat', bd=8, height=1, font=('Helvetica', 20), command=downwards)
         button4.pack(pady=1)
 
-        # Kijken of Arduino in COM3 is geplugged
+        '''ser = serial.Serial("COM3", 9600)
+
+        print(ser)
+
+        while True:
+            s = ser.read()
+            print(s.hex()) '''
+            
+       #Kijken of Arduino in COM3 is geplugged
         try:
-            ser = serial.Serial("COM3", 9600, timeout=1000)
+            ser = serial.Serial("COM3", 9600)
 
             if ser.read():
 
@@ -105,14 +135,17 @@ class StartPage(tk.Frame):
                 temperatuur = []
 
                 arduinoString = ser.readline()#lees arduino output waarde
-                temp = float (arduinoString) #string naar float
-                temperatuur.append(temp)#temperatuur array
 
-                labelt = tk.Label(self, text="Het is momenteel {} °C".format(temp), font=('Helvetica', 10))
-                labelt.pack(pady=10,padx=10)
-                
-                label = tk.Label(self, text="USB gevonden", font=('Helvetica', 10))
-                label.pack(pady=10,padx=10)
+                if arduinoString == temperatuur:
+                    temp = float (arduinoString) #string naar float
+                    temperatuur.append(temp)#temperatuur array
+
+
+                    labelt = tk.Label(self, text="Het is momenteel {} °C".format(temp), font=('Helvetica', 10))
+                    labelt.pack(pady=10,padx=10)
+                    
+                    label = tk.Label(self, text="USB gevonden", font=('Helvetica', 10))
+                    label.pack(pady=10,padx=10)
 
             else:
                 label = tk.Label(self, text="USB losgekoppeld", font=('Helvetica', 10))
@@ -178,7 +211,7 @@ class TempPage(tk.Frame):
 
         except serial.serialutil.SerialException:
             label = tk.Label(self, text="Geen Arduino gevonden, koppel de Ardunio \n in de USB poort om data uit te lezen.", font=('Helvetica', 10))
-            label.pack(pady=10,padx=10)
+            label.pack(pady=10,padx=10) 
 
 # Lichtsensor GUI
 class LightPage(tk.Frame):
@@ -201,4 +234,3 @@ class LightPage(tk.Frame):
 
 root = MainWindow()
 root.mainloop()
-        
