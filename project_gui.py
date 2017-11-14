@@ -1,4 +1,4 @@
-# Versie 2.1
+# Versie 2.2
 # Door Misha Dokter
 # Datum: 01-11-'17
 
@@ -13,8 +13,6 @@ import tkinter as tk # tkinter importen
 from tkinter import ttk
 import time
 import serial
-#ser = serial
-
 import time 
 
 LARGE_FONT= ("Verdana", 12)
@@ -28,9 +26,7 @@ class MainWindow(tk.Tk):
         
         tk.Tk.__init__(self, *args, **kwargs)
 
-
         tk.Tk.wm_title(self, "Project GUI")
-        
          
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand = True)
@@ -39,7 +35,7 @@ class MainWindow(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, TempPage, LightPage):
+        for F in (StartPage, TempPage, RollOut):
 
             frame = F(container, self)
 
@@ -64,27 +60,27 @@ class StartPage(tk.Frame):
         label.pack(pady=20,padx=10)
 
         # Rolluik omhoog laten gaan
-
-
         def upwards():
-            start = time.time()
-            PERIOD_OF_TIME = 5 # 5sec
             self.lbl = tk.Label(self, text="Rolluik gaat omhoog...", font=('Helvetica', 10))
             self.lbl.pack(pady=10,padx=10)
             def change_color():
                     
                 current_color = box.cget("background")
                 for i in range(5):
-                    next_color = "orange" if current_color == "red" else "red"
+                    next_color = "orange" if current_color == "green" else "green"
                 box.config(background=next_color, height="3", width="6")
                 root.after(500, change_color)
                 
             box = tk.Text(self)
             box.pack()
             change_color()
-            print (start)
-            if time.time() > start + PERIOD_OF_TIME:
-                print ("Stop")
+
+            ser = serial.Serial(
+                port = 'COM6',
+                baudrate = 9600,
+             )
+            
+            ser.write(1)
 
         # Rolluik omlaag laten gaan
         def downwards():
@@ -92,20 +88,27 @@ class StartPage(tk.Frame):
             label.pack(pady=10,padx=10)
             def change_color():
                 current_color = box.cget("background")
-                next_color = "orange" if current_color == "green" else "green"
+                next_color = "orange" if current_color == "red" else "red"
                 box.config(background=next_color, height="3", width="6")
                 root.after(500, change_color)
                         
             box = tk.Text(self)
             box.pack()
             change_color()
+
+            ser = serial.Serial(
+                port = 'COM6',
+                baudrate = 9600,
+             )
+            
+            ser.write(0)
             
         button = tk.Button(self, text="Temperatuur diagram", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
                             command=lambda: controller.show_frame(TempPage))
         button.pack()
 
-        button2 = tk.Button(self, text="Lichtsensor diagram", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
-                            command=lambda: controller.show_frame(LightPage))
+        button2 = tk.Button(self, text="Uitrol aanpassen", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
+                            command=lambda: controller.show_frame(RollOut))
         button2.pack(pady=18)
 
         label = tk.Label(self, text="Rolluik control, omhoog of omlaag. \nKlik op de knop om het rolluik te besturen ", font=('Helvetica', 12))
@@ -116,45 +119,33 @@ class StartPage(tk.Frame):
 
         button4 = tk.Button(self, text="⬇", bg='gray', fg='#ffffff', relief='flat', bd=8, height=1, font=('Helvetica', 20), command=downwards)
         button4.pack(pady=1)
-
-        '''ser = serial.Serial("COM3", 9600)
-
-        print(ser)
-
-        while True:
-            s = ser.read()
-            print(s.hex()) '''
             
-       #Kijken of Arduino in COM3 is geplugged
+       #Kijken of Arduino in COM-poort is geplugged
         try:
-            ser = serial.Serial("COM3", 9600)
+            ser = serial.Serial("COM7", 9600)
 
             if ser.read():
 
-                #plt.ion() #live data
-                temperatuur = []
+                '''temperatuur = []
 
                 arduinoString = ser.readline()#lees arduino output waarde
 
-                if arduinoString == temperatuur:
-                    temp = float (arduinoString) #string naar float
-                    temperatuur.append(temp)#temperatuur array
+                temp = float (arduinoString) #string naar float
+                temperatuur.append(temp)#temperatuur array
 
-
-                    labelt = tk.Label(self, text="Het is momenteel {} °C".format(temp), font=('Helvetica', 10))
-                    labelt.pack(pady=10,padx=10)
+                labelt = tk.Label(self, text="Het is momenteel {} °C".format(temp), font=('Helvetica', 10))
+                labelt.pack(pady=10,padx=10)'''
                     
-                    label = tk.Label(self, text="USB gevonden", font=('Helvetica', 10))
-                    label.pack(pady=10,padx=10)
-
-            else:
-                label = tk.Label(self, text="USB losgekoppeld", font=('Helvetica', 10))
+                label = tk.Label(self, text="Arduino gevonden", font=('Helvetica', 10))
                 label.pack(pady=10,padx=10)
+                
+            else:
+                label3 = tk.Label(self, text="USB losgekoppeld", font=('Helvetica', 10))
+                label3.pack(pady=10,padx=10)
 
         except serial.serialutil.SerialException:
-            label = tk.Label(self, text="Geen USB gevonden", font=('Helvetica', 10))
+            label = tk.Label(self, text="", font=('Helvetica', 10))
             label.pack(pady=10,padx=10)
-
 
 # Temperatuursensor GUI
 class TempPage(tk.Frame):
@@ -168,7 +159,7 @@ class TempPage(tk.Frame):
         def temperatuur():
             
             arduinoData = serial.Serial(
-                    port = 'COM3',
+                    port = 'COM7',
                     baudrate = 9600,
                     ) #connectie met COM3 met
 
@@ -197,13 +188,13 @@ class TempPage(tk.Frame):
                             command=lambda: controller.show_frame(StartPage))
         button.pack()
 
-        button2 = tk.Button(self, text="Lichtsensor pagina", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
-                            command=lambda: controller.show_frame(LightPage))
+        button2 = tk.Button(self, text="Uitrol aanpassen", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
+                            command=lambda: controller.show_frame(RollOut))
         button2.pack(pady=18)
 
-        # Kijken of Arduino in COM3 is geplugged
+        # Kijken of Arduino in COM-poort is geplugged
         try:
-            ser = serial.Serial("COM3", 9600, timeout=1000)
+            ser = serial.Serial("COM7", 9600, timeout=1000)
             
             button3 = tk.Button(self, text="Open temperatuur grafiek", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
             command=temperatuur)
@@ -214,11 +205,11 @@ class TempPage(tk.Frame):
             label.pack(pady=10,padx=10) 
 
 # Lichtsensor GUI
-class LightPage(tk.Frame):
+class RollOut(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Lichtsensor diagram", font=LARGE_FONT)
+        label = tk.Label(self, text="Pas de uitrol van het zonnescherm aan", font=LARGE_FONT)
         label.pack(pady=10,padx=10)
 
         button = tk.Button(self, text="Terug naar het beginscherm", bg='#01DF01', fg='#FFFFFF', relief='flat', bd=8, width=20, font=('Helvetica', 10),
@@ -229,8 +220,16 @@ class LightPage(tk.Frame):
                             command=lambda: controller.show_frame(TempPage))
         button2.pack(pady=18)
 
-        l = ttk.Label(self, text="Lichtsensor diagram komt hier")
-        l.pack()
+        def getDate():
+            labelt = tk.Label(self, text="De nieuwe uitroltijd is {} seconden".format(E3.get()), font=('Helvetica', 10))
+            labelt.pack(pady=10,padx=10)
+
+        label3 = tk.Label(self, text="Tijd (in seconden)")
+        E3 = tk.Entry(self, bd =5)
+        submit = tk.Button(self, text ="Submit", command = getDate)
+        label3.pack()
+        E3.pack()
+        submit.pack()
 
 root = MainWindow()
 root.mainloop()
